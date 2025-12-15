@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Mock LinkedIn</title>
+    <style>
+        :root {
+            --blue: #0a66c2;
+            --light: #f3f2ef;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--light);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 26px;
+        }
+
+        /* Search bar */
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 12px 14px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .search-bar button {
+            padding: 12px 20px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: none;
+            background: var(--blue);
+            color: white;
+            cursor: pointer;
+        }
+
+        /* Profile cards */
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .profile-info h3 {
+            margin: 0 0 6px;
+            font-size: 18px;
+        }
+
+        .profile-info p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 160px;
+        }
+
+        .actions button {
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid var(--blue);
+            background: white;
+            color: var(--blue);
+        }
+
+        .actions button.primary {
+            background: var(--blue);
+            color: white;
+        }
+
+        .actions textarea {
+            resize: none;
+            padding: 8px;
+            font-size: 13px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .accepted {
+            border-left: 5px solid #22c55e;
+        }
+
+        .pending {
+            border-left: 5px solid #f59e0b;
+        }
+
+        /* Pagination */
+        .pagination {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .pagination button {
+            padding: 10px 18px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Mock LinkedIn Search</h1>
+
+    <div class="search-bar">
+        <input id="search" placeholder="Search by job title, company, or location" />
+        <button id="searchBtn">Search</button>
+    </div>
+
+    <div id="results">
+
+        <!-- Accepted connection -->
+        <div class="card accepted" data-profile-id="john-doe" data-accepted="true" data-name="John Doe">
+            <div class="profile-info">
+                <h3>John Doe</h3>
+                <p>Software Engineer · ExampleCorp</p>
+            </div>
+            <div class="actions">
+                <button class="message primary">Message</button>
+                <textarea class="msgbox" rows="3" placeholder="Write a message..."></textarea>
+            </div>
+        </div>
+
+        <!-- Not yet connected -->
+        <div class="card pending" data-profile-id="jane-smith" data-accepted="false" data-name="Jane Smith">
+            <div class="profile-info">
+                <h3>Jane Smith</h3>
+                <p>Backend Engineer · DemoInc</p>
+            </div>
+            <div class="actions">
+                <button class="connect primary">Connect</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="pagination">
+        <button id="next">Next Page</button>
+    </div>
+</div>
+
+</body>
+</html>

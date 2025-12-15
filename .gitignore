@@ -1,0 +1,17 @@
+# Go
+/bin/
+/vendor/
+
+# Environment
+.env
+
+# Rod browser cache
+rod/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
