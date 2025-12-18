@@ -30,7 +30,28 @@ func runBot(
 	stealth.LongPause()
 
 	// ===============================
-	// SEARCH + CONNECTION REQUESTS
+	// SEARCH INPUT (DEMO VISUAL)
+	// ===============================
+	searchBox, err := page.Element("#search")
+	if err == nil {
+		stealth.MoveMouseBezier(
+			page,
+			stealth.Point{X: 200, Y: 200},
+			stealth.Point{X: 420, Y: 260},
+		)
+		stealth.ShortPause()
+
+		stealth.TypeLikeHuman(searchBox, "Software Engineer")
+		stealth.LongPause()
+
+		if btn, err := page.Element("#searchBtn"); err == nil {
+			btn.MustClick()
+			stealth.LongPause()
+		}
+	}
+
+	// ===============================
+	// SEARCH RESULTS (MOCKED)
 	// ===============================
 	profiles, err := search.CollectProfiles(page)
 	if err != nil {
@@ -39,75 +60,90 @@ func runBot(
 
 	for _, p := range profiles {
 
-		// Skip duplicates
-		if sent, _ := st.HasSent(p.ID); sent {
-			log.(interface{ Info(string) }).Info("Skipping profile: " + p.ID)
+		// ---- find profile card safely ----
+		card, err := page.Element(`[data-profile-id="` + p.ID + `"]`)
+		if err != nil {
+			log.(interface{ Info(string) }).Info(
+				"Profile card not found for " + p.ID + ", skipping",
+			)
 			continue
 		}
 
-		// Daily limit
-		count, _ := st.CountSentToday()
-		if count >= 15 {
-			log.(interface{ Info(string) }).Info("Daily limit reached")
-			return nil
-		}
+		// ===============================
+		// CONNECT FLOW
+		// ===============================
+		connectBtn, err := card.Element(".connect")
+		if err == nil {
 
-		card := page.MustElement(`[data-profile-id="` + p.ID + `"]`)
-		btn := card.MustElement(".connect")
+			if sent, _ := st.HasSent(p.ID); sent {
+				log.(interface{ Info(string) }).Info(
+					"Already sent request to " + p.ID,
+				)
+				continue
+			}
 
-		box := btn.MustShape().Box()
-		from := stealth.Point{X: box.X - 50, Y: box.Y}
-		to := stealth.Point{X: box.X + box.Width/2, Y: box.Y + box.Height/2}
+			box := connectBtn.MustShape().Box()
 
-		stealth.MoveMouseBezier(page, from, to)
-		time.Sleep(300 * time.Millisecond)
-		btn.MustClick()
+			from := stealth.Point{X: box.X - 50, Y: box.Y}
+			to := stealth.Point{
+				X: box.X + box.Width/2,
+				Y: box.Y + box.Height/2,
+			}
 
-		log.(interface{ Info(string) }).Info("Sent request to " + p.ID)
-		_ = st.MarkSent(p.ID)
+			stealth.MoveMouseBezier(page, from, to)
+			time.Sleep(300 * time.Millisecond)
+			connectBtn.MustClick()
 
-		stealth.LongPause()
-	}
+			log.(interface{ Info(string) }).Info("Sent request to " + p.ID)
+			_ = st.MarkSent(p.ID)
 
-	// ===============================
-	// MESSAGING SYSTEM
-	// ===============================
-	cards := page.MustElements(".card")
-
-	for _, card := range cards {
-
-		accepted, _ := card.Attribute("data-accepted")
-		if accepted == nil || *accepted != "true" {
+			stealth.LongPause()
 			continue
 		}
 
-		id, _ := card.Attribute("data-profile-id")
-		name, _ := card.Attribute("data-name")
-		if id == nil || name == nil {
+		// ===============================
+		// MESSAGE FLOW
+		// ===============================
+		msgBtn, err := card.Element(".message")
+		if err == nil {
+
+			if done, _ := st.HasMessaged(p.ID); done {
+				log.(interface{ Info(string) }).Info(
+					"Already messaged " + p.ID,
+				)
+				continue
+			}
+
+			msgBox, err := card.Element(".msgbox")
+			if err != nil {
+				continue
+			}
+
+			msgBtn.MustClick()
+			stealth.ShortPause()
+
+			message := messaging.Render(
+				"Hi {{name}}, thanks for connecting!",
+				map[string]string{
+					"name": p.ID,
+				},
+			)
+
+			stealth.TypeLikeHuman(msgBox, message)
+
+			log.(interface{ Info(string) }).Info("Sent message to " + p.ID)
+			_ = st.MarkMessaged(p.ID)
+
+			stealth.LongPause()
 			continue
 		}
 
-		if done, _ := st.HasMessaged(*id); done {
-			log.(interface{ Info(string) }).Info("Already messaged " + *id)
-			continue
-		}
-
-		msgBtn := card.MustElement(".message")
-		msgBox := card.MustElement(".msgbox")
-
-		template := "Hi {{name}}, thanks for connecting! Looking forward to staying in touch."
-		message := messaging.Render(template, map[string]string{
-			"name": *name,
-		})
-
-		msgBtn.MustClick()
-		stealth.ShortPause()
-		stealth.TypeLikeHuman(msgBox, message)
-
-		log.(interface{ Info(string) }).Info("Sent message to " + *id)
-		_ = st.MarkMessaged(*id)
-
-		stealth.LongPause()
+		// ===============================
+		// NOTHING TO DO
+		// ===============================
+		log.(interface{ Info(string) }).Info(
+			"No actionable buttons for " + p.ID + ", skipping",
+		)
 	}
 
 	// ===============================
